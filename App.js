@@ -17,6 +17,7 @@ import {
   useColorScheme,
   View,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 
 import {Colors, LearnMoreLinks} from 'react-native/Libraries/NewAppScreen';
@@ -49,40 +50,12 @@ const Header = () => {
   );
 };
 
-const Counter = ({countStart}) => {
-  const [count, setCount] = useState(countStart);
-  return (
-    <View
-      style={{
-        height: 150,
-      }}>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <Text
-          style={{
-            color: 'white',
-            padding: 10,
-          }}>
-          Vous avez cliqué {count} fois
-        </Text>
-        <Button
-          onPress={() => setCount(count + 1)}
-          title="Incrémenter"></Button>
-      </View>
-    </View>
-  );
-};
-
 const UserList = () => {
   const [isLoading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
 
-  const getUsers = () => {
-    return fetch('https://dayliz.herokuapp.com/api/users')
+  useEffect(() => {
+    fetch('https://dayliz.herokuapp.com/api/users')
       .then(response => response.json())
       .then(json => {
         setUsers(json);
@@ -91,15 +64,6 @@ const UserList = () => {
       .catch(error => {
         console.error(error);
       });
-  };
-  const list = () => {
-    return users.map(user => {
-      return <User user={user} key={user.id}></User>;
-    });
-  };
-
-  useEffect(() => {
-    getUsers();
   }, []);
 
   return (
@@ -118,13 +82,18 @@ const UserList = () => {
         }}>
         Utilisateurs
       </Text>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={{
-          height: '100%',
-        }}>
-        {isLoading ? <Loading /> : list()}
-      </ScrollView>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <ScrollView>
+          <FlatList
+            style={{flex: 1, height: '100%'}}
+            data={users}
+            renderItem={user => <User user={user.item}></User>}
+            keyExtractor={user => user.id}
+          />
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -132,8 +101,8 @@ const PromotionList = () => {
   const [isLoading, setLoading] = useState(true);
   const [promotions, setPromotions] = useState([]);
 
-  const getPromotions = () => {
-    return fetch('https://dayliz.herokuapp.com/api/promotions')
+  useEffect(() => {
+    fetch('https://dayliz.herokuapp.com/api/promotions')
       .then(response => response.json())
       .then(json => {
         setPromotions(json);
@@ -142,15 +111,6 @@ const PromotionList = () => {
       .catch(error => {
         console.error(error);
       });
-  };
-
-  const list = () => {
-    return promotions.map(promotion => {
-      return <Promotion promotion={promotion} key={promotion.id}></Promotion>;
-    });
-  };
-  useEffect(() => {
-    getPromotions();
   }, []);
 
   return (
@@ -169,13 +129,19 @@ const PromotionList = () => {
         }}>
         Promotions
       </Text>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={{
-          height: '100%',
-        }}>
-        {isLoading ? <Loading /> : list()}
-      </ScrollView>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <ScrollView>
+          <FlatList
+            data={promotions}
+            renderItem={promotion => (
+              <Promotion promotion={promotion.item}></Promotion>
+            )}
+            keyExtractor={promotion => promotion.id}
+          />
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -247,14 +213,8 @@ const App = () => {
       }}>
       <StatusBar barStyle="light-content" />
       <Header />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={{
-          height: '100%',
-        }}>
-        <UserList />
-        <PromotionList />
-      </ScrollView>
+      <UserList />
+      <PromotionList />
     </SafeAreaView>
   );
 };
